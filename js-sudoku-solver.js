@@ -3,6 +3,68 @@ const stats = {
 };
 
 
+const solve = (sudoku) => {
+  printSudoku(sudoku);
+  console.log();
+  let possibleValues = getPossibleValues(sudoku);
+  possibleValues = fillNewCertainValues(sudoku, possibleValues);
+  printSudoku(sudoku);
+};
+
+
+const printSudoku = (sudoku) => {
+  sudoku.forEach(row => console.log(String(row.map(value => {
+    if(value === "") return " "; else return value;
+  }))));
+};
+
+
+const fillNewCertainValues = (sudoku, possibleValues) => {
+  let newValues = true;
+  while (newValues) {
+    newValues = false;
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (possibleValues[row][col] !== "certain") {
+          if (possibleValues[row][col].length === 1) {
+            sudoku[row][col] = possibleValues[row][col][0];
+            possibleValues[row][col] = "certain";
+            newValues = true;
+          }
+        }
+      }
+    }
+    possibleValues = filterPossibleValues(sudoku,possibleValues);
+  }
+  return possibleValues;
+};
+
+
+const getPossibleValues = (sudoku) => {
+  let possibleValues = sudoku.map(row => row.map(value => {
+    if (value == "") {
+      return [1,2,3,4,5,6,7,8,9];
+    } else {
+      return "certain";
+    }
+  }));
+  return filterPossibleValues(sudoku, possibleValues);
+};
+
+
+const filterPossibleValues = (sudoku, possibleValues) => {
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+      if (possibleValues[row][col] !== "certain") {
+        possibleValues[row][col] = possibleValues[row][col].filter(value => 
+          tryCellValue(sudoku, row, col, value));
+      }
+    }
+  }
+  return possibleValues;
+};
+
+
 const remove = (element, array) => {
   const index = array.indexOf(element);
   if (index !== -1) {
@@ -11,7 +73,7 @@ const remove = (element, array) => {
 };
 
 
-const isCorrect = (sudoku) => {
+const isSudokuCorrect = (sudoku) => {
   if (checkRows(sudoku) && checkColumns(sudoku) && checkBlocks(sudoku)) {
     return true;
   } else {
@@ -53,6 +115,46 @@ const checkBlocks = (sudoku) => {
 };
 
 
+const tryCellValue = (sudoku, row, column, valueToTry) => {
+  sudoku[row][column] = valueToTry;
+  if (checkNine(getRow(sudoku,row)) 
+      &&  checkNine(getCol(sudoku,column))
+      &&  checkNine(getBlock(sudoku,row,column))
+     ) {
+    sudoku[row][column] = "";
+    return true;
+  } 
+  else {
+    sudoku[row][column] = "";
+    return false;
+  }
+};
+
+
+const getRow = (sudoku, i) => {
+  return sudoku[i];
+};
+
+
+const getCol = (sudoku, i) => {
+  return sudoku.map(row => row[i]);
+};
+
+
+const getBlock = (sudoku, row, col) => {
+  let blockStartRow = Math.floor(row / 3) * 3;
+  let blockStartCol = Math.floor(col / 3) * 3;
+  
+  let block = [];
+  for (let brow = blockStartRow; brow < (blockStartRow + 3); brow += 1) { // foreach cell in block
+    for (let bcol = blockStartCol; bcol < (blockStartCol + 3); bcol += 1) {
+      block.push(sudoku[brow][bcol]);
+    }
+  }
+  return block;
+};
+
+
 const checkNine = (() => {
   let emptyNine = {"": 0}; // empty cell: ""
   for (let i = 1; i < 10; i++) {
@@ -83,7 +185,7 @@ const test = (func, ...testInputsAndResults) => {
   else {
     console.log(func.name, "passes!");
   }
-}
+};
 
 
 const tests = () => {
@@ -183,7 +285,7 @@ const tests = () => {
   , {input: realSudoku1, result: true}
   , {input: realSudoku1solved, result: true}
   );
-  test({func: isCorrect, name:"isCorrect"}
+  test({func: isSudokuCorrect, name:"isSudokuCorrect"}
   , {input: OKSudoku1, result: true}
   , {input: BlockFailSudoku1, result: false}
   , {input: RowFailSudoku1, result: false}
@@ -191,5 +293,9 @@ const tests = () => {
   , {input: realSudoku1, result: true}
   , {input: realSudoku1solved, result: true}
   );
+  console.log(realSudoku1);
+  solve(realSudoku1);
 };
+
+
 tests();
