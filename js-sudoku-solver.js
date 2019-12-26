@@ -27,7 +27,7 @@ const solve = (sudoku, callDepth = 1, stats = {backtracks: 0}) => {
     return true;
   }
   else {
-    console.log("Ohjelmassa virhe");
+    console.log("Program failure");
     return false;
   }
 };
@@ -460,12 +460,11 @@ test({func: checkBlocks, name:"checkBlocks"}
   , {input: realSudoku1, result: true}
   , {input: realSudoku1solved, result: true}
   );
-  console.log();
-  printSudoku(realSudoku1);
-  printSudoku(realSudoku2);
-  console.log();
-  
 };
 tests();
+
+printSudoku(realSudoku1);
 solve(realSudoku1);
+
+printSudoku(realSudoku2);
 solve(realSudoku2);
