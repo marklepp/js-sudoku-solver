@@ -40,11 +40,24 @@ const cleanAfterTry = (tries,sudoku) => {
 
 const printSudoku = (sudoku) => {
   console.log();
-  sudoku.forEach(row => console.log("|",
-    row.map(value => {
-      if(value === "") return " "; else return value;
-    }).join("  "),
-    "|"));
+  console.log(" |---------|---------|---------| ");
+  sudoku.forEach((row, irow) => {
+    console.log(
+      row.map(value => {
+        if(value === "") return " "; else return value;
+      }).reduce((prev, cur, i) => {
+        if (i % 3 === 0) {
+          return prev + " | " + cur;
+        } else {
+          return prev + "  " + cur;
+        }
+      }, ""),
+      "|");
+    if ((irow-2) % 3 === 0 && (irow !== 8)) {
+      console.log(" |---------|---------|---------| ");
+    }
+  });
+  console.log(" |---------|---------|---------| ");
   console.log();
 };
 
