@@ -1,5 +1,19 @@
+const sudokuSolver = (sudoku) => {
+  printSudoku(sudoku);
+  if (!checkIfCorrect(sudoku)) {
+    console.log("Given sudoku is incorrect.");
+    return;
+  }
+  let stats = {callDepth: 1, guesses: 0, backtracks: 0};
+  solve(sudoku, stats);
+  printSudoku(sudoku);
+  console.log("Final call depth:", stats.callDepth);
+  console.log("Guesses:", stats.guesses);
+  console.log("Backtracks:", stats.backtracks);
+}
 
-const solve = (sudoku, callDepth = 1, stats = {backtracks: 0}) => {
+
+const solve = (sudoku, stats = {callDepth: 1, guesses: 0, backtracks: 0}) => {
   let possibleValues = getPossibleValues(sudoku);
   possibleValues = fillNewCertainValues(sudoku, possibleValues);
   for (let row = 0; row < 9; row++) {
@@ -9,8 +23,13 @@ const solve = (sudoku, callDepth = 1, stats = {backtracks: 0}) => {
           if (tryCellValue(sudoku,row,col,val)) {
             let newSudoku = JSON.parse(JSON.stringify(sudoku));
             newSudoku[row][col] = val;
-            if (solve(newSudoku, callDepth + 1, stats)) {
+            stats.guesses += 1;
+            stats.callDepth += 1;
+            if (solve(newSudoku, stats)) {
+              Object.assign(sudoku,newSudoku);
               return true;
+            } else {
+              stats.callDepth -= 1;
             }
           }
         }
@@ -20,21 +39,11 @@ const solve = (sudoku, callDepth = 1, stats = {backtracks: 0}) => {
     }
   }
   if (checkIfComplete(sudoku) && checkIfCorrect(sudoku)) {
-    printSudoku(sudoku);
-    console.log("Final call depth:",callDepth);
-    console.log("Backtracks:",stats.backtracks);
-    stats.backtracks = 0;
     return true;
   }
   else {
-    console.log("Program failure");
     return false;
   }
-};
-
-
-const cleanAfterTry = (tries,sudoku) => {
-  tries.forEach((val,row) => val.forEach((cal, col) => sudoku[row][col] = ""));
 };
 
 
@@ -98,7 +107,7 @@ const getPossibleValues = (sudoku) => {
 const filterPossibleValues = (sudoku, possibleValues) => {
   for (let row = 0; row < 9; row++) {
     for (let col = 0; col < 9; col++) {
-      if (possibleValues[row][col] !== "certain") {
+      if (possibleValues[row][col] !== "certain") {  // select if value possible
         possibleValues[row][col] = possibleValues[row][col].filter(value => 
           tryCellValue(sudoku, row, col, value));
       }
@@ -116,6 +125,9 @@ const filterPossibleValues = (sudoku, possibleValues) => {
 };
 
 
+// Block slice is a row or a column slice from a 3x3 -block.
+// Checks if the other block slices in the row/column have values, that
+// can only go in their slice. This will remove these values from the current block.
 const filterInBlockSlices = (possibleValues, row, col) => {
   filterValuesInColumnSlices(possibleValues,row,col);
   filterValuesInRowSlices(possibleValues,row,col);
@@ -126,11 +138,14 @@ const filterValuesInColumnSlices = (possibleValues, row, col) =>{
   possibleValuesOnlyInThisBlockColumn(
         possibleValues
       , ((Math.floor(row / 3)*3) + 3) % 9
-      , col).forEach(val => remove(val,possibleValues[row][col]));
+      , col
+  ).forEach(val => remove(val,possibleValues[row][col]));
+
   possibleValuesOnlyInThisBlockColumn(
         possibleValues
       , ((Math.floor(row / 3)*3) + 6) % 9
-      , col).forEach(val => remove(val,possibleValues[row][col]));
+      , col
+  ).forEach(val => remove(val,possibleValues[row][col]));
 };
 
 
@@ -138,11 +153,14 @@ const filterValuesInRowSlices = (possibleValues, row, col) =>{
   possibleValuesOnlyInThisBlockRow(
         possibleValues
       , row
-      , ((Math.floor(col / 3)*3) + 3) % 9).forEach(val => remove(val,possibleValues[row][col]));
+      , ((Math.floor(col / 3)*3) + 3) % 9
+  ).forEach(val => remove(val,possibleValues[row][col]));
+
   possibleValuesOnlyInThisBlockRow(
         possibleValues
       , row
-      , ((Math.floor(col / 3)*3) + 6) % 9).forEach(val => remove(val,possibleValues[row][col]));
+      , ((Math.floor(col / 3)*3) + 6) % 9
+  ).forEach(val => remove(val,possibleValues[row][col]));
 };
 
 
@@ -476,8 +494,77 @@ test({func: checkBlocks, name:"checkBlocks"}
 };
 tests();
 
-printSudoku(realSudoku1);
-solve(realSudoku1);
+let empty = [
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""]
+];
 
-printSudoku(realSudoku2);
-solve(realSudoku2);
+let madeUp = [
+  [1,"",9,"","","","","",""],
+  [2,5,"","","","","","",""],
+  [3,6,8,7,9,1,2,4,5],
+  
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  
+  ["","","","","","","","",""],
+  ["","","","","","","","",""],
+  ["","","","","","","","",""]
+];
+
+let realSudoku3 = [
+  [7,"","","","","",9,"",1]
+  , ["","",3,"",2,"","","",""]
+  , ["",1,"","",5,"","",2,""]
+  , ["",4,"","","",5,"","",8]
+  , ["","",5,8,"",1,4,"",""]
+  , [3,"","",2,"","","",1,""]
+  , ["",8,"","",3,"","",4,""]
+  , ["","","","",1,"",2,"",""]
+  , [2,"",4,"","","","","",6]
+];
+
+
+let realSudoku4 = [
+  ["","","","","",5,6,9,""]
+  , ["",9,"",2,"","",8,"",""]
+  , ["",2,5,"",9,"","","",""]
+  , ["","","",1,"","",2,"",8]
+  , [4,"","","","","","","",3]
+  , [6,"",2,"","",3,"","",""]
+  , ["","","","",8,"",4,7,""]
+  , ["","",1,"","",4,"",8,""]
+  , ["",5,4,3,"","","","",""]
+];
+
+
+let worldsHardest = [
+  [8,"","","","","","","",""]
+  , ["","",3,6,"","","","",""]
+  , ["",7,"","",9,"",2,"",""]
+  
+  , ["",5,"","","",7,"","",""]
+  , ["","","","",4,5,7,"",""]
+  , ["","","",1,"","","",3,""]
+  
+  , ["","",1,"","","","",6,8]
+  , ["","",8,5,"","","",1,""]
+  , ["",9,"","","","",4,"",""]
+];
+
+
+sudokuSolver(empty);
+sudokuSolver(madeUp);
+sudokuSolver(realSudoku1);
+sudokuSolver(realSudoku2);
+sudokuSolver(realSudoku3);
+sudokuSolver(realSudoku4);
+sudokuSolver(worldsHardest);
