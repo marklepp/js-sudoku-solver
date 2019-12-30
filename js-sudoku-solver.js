@@ -561,10 +561,18 @@ let worldsHardest = [
 ];
 
 
-sudokuSolver(empty);
-sudokuSolver(madeUp);
-sudokuSolver(realSudoku1);
-sudokuSolver(realSudoku2);
-sudokuSolver(realSudoku3);
-sudokuSolver(realSudoku4);
-sudokuSolver(worldsHardest);
+console.time('all');
+[
+  () => sudokuSolver(empty)
+  , () => sudokuSolver(madeUp)
+  , () => sudokuSolver(realSudoku1)
+  , () => sudokuSolver(realSudoku2)
+  , () => sudokuSolver(realSudoku3)
+  , () => sudokuSolver(realSudoku4)
+  , () => sudokuSolver(worldsHardest)
+].forEach(testf => {
+  console.time('one');
+  testf();
+  console.timeEnd('one');
+});
+console.timeEnd('all');
