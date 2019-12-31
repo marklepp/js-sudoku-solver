@@ -10,7 +10,19 @@ const sudokuSolver = (sudoku) => {
   console.log("Final call depth:", stats.callDepth);
   console.log("Guesses:", stats.guesses);
   console.log("Backtracks:", stats.backtracks);
-}
+};
+
+
+const sudokuSolver2 = (sudoku) => {
+  printSudoku(sudoku);
+  if (!checkIfCorrect(sudoku)) {
+    alert("Given sudoku is incorrect.");
+    return;
+  }
+  let stats = {callDepth: 1, guesses: 0, backtracks: 0};
+  solve(sudoku, stats);
+  return {sudoku:sudoku, stats:stats};
+};
 
 
 const solve = (sudoku, stats = {callDepth: 1, guesses: 0, backtracks: 0}) => {
